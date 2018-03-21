@@ -13,9 +13,10 @@ var bounds = d3.geom.polygon([
 ]);
 
 
-popRandField(3);
-popRandCircles(3);
-popRandRotCircles(3)
+popRandField(30);
+// popRandCircles(3);
+// popRandRotCircles(3)
+genTraveler(0, 0, 0, 0)
 
 
 var line = d3.svg.line()
@@ -61,10 +62,23 @@ function resample(points) {
 /** POINT GENERATORS **/
 
 function popRandField(n) {
-  for (let i = 0; i < n; i++) points.push(randCoords());
+  for (let i = 0; i < n; i++) points.push(randPoint());
 }
-function randCoords() {
+function randPoint() {
   return [randX(), randY()];
+}
+
+function genTraveler(xi, yi, vi, di) {
+  var point = [xi, yi];
+  let v = vi,
+      d = di;
+  d3.timer(function (elapsed) {
+    v = v + genRandom(-1, 1);
+    d = d + genRandom(-1, 1);
+    point[0] += Math.cos(d) * v;
+    point[1] += yi + Math.sin(d) * v;
+  }, 0, start);
+  points.push(point);
 }
 
 function popRandCircles(n) {
