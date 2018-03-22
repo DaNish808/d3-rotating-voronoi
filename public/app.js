@@ -35,10 +35,13 @@ var bounds = d3.geom.polygon([
 
 
 // popRandField(5);
-popRandClusters(genRandom(1, 5, 'int'))
+// popRandClusters(genRandom(1, 4, 'int'))
+// popRandClusters(2)
 // popRandCircles(1);
+popRandRotCircles(genRandom(1, 4, 'int'));
 // popRandRotCircles(1);
-popRandTravelers(1);
+// popRandTravelers(1, 'bouncy-edges');
+popRandLines(genRandom(1, 20, 'int'));
 
 
 var line = d3.svg.line()
@@ -91,8 +94,9 @@ function randPoint() {
   return [randX(), randY()];
 }
 
+
 function popRandClusters(n) {
-  for(n; n > 0; n--) pointCluster(randX(), randY(), genRandom(20, 200, 'int'), genRandom(2, 30, 'int'))
+  for(n; n > 0; n--) pointCluster(randX(), randY(), genRandom(10, 200, 'int'), genRandom(2, 30, 'int'))
 }
 function pointCluster(cx, cy, r, n) {
   const randDiff = () => genRandom(-1, 1) * Math.random() * r;
@@ -103,11 +107,67 @@ function pointCluster(cx, cy, r, n) {
   }
 }
 
-function popRandTravelers(n) {
-  for (let i = 0; i < n; i++) genRandTraveler();
+
+function popRandLines(n) {
+  for(n; n > 0; n--) genRandLine();
 }
-function genRandTraveler() {
-  genTraveler(randX(), randY(), genRandom(0.001, 5), genRandom(1, 360, 'int'), moveRestrictions[genRandom(0, moveRestrictions.length, 'int')]);
+function genRandLine() {
+  genLine(randX(), randY(), randX(), randY(), genRandom(3, 31, 'int'));
+}
+function genLine(aX, aY, bX, bY, n) {
+  const calcStepDiff = (a, b) => (a - b) / (n - 1);
+  const dX = calcStepDiff(aX, bX);
+  const dY = calcStepDiff(aY, bY);
+  let x = aX, y = aY;
+  for(let i = 0; i < n; i++) {
+    x += dX;
+    y += dY;
+    points.push([x, y])
+  }
+}
+
+
+
+function popRandCircles(n) {
+  for (let i = 0; i < n; i++) genRandCircle();
+}
+function genRandCircle() {
+  genCircle(randX(), randY(), genRandom(3, 250, 'int'), genRandom(3, 50, 'int'))
+}
+function genCircle(cx, cy, r, n) {
+  d3.range(1e-6, 2 * Math.PI, 2 * Math.PI / n).map(function (θ, i) {
+    var point = [cx + Math.cos(θ) * r, cy + Math.sin(θ) * r];
+    points.push(point);
+  });
+}
+
+
+function popRandRotCircles(n) {
+  for (let i = 0; i < n; i++) genRandRotCircle();
+}
+function genRandRotCircle() {
+  genRotCircle(randX(), randY(), genRandom(3, 250, 'int'), genRandom(3, 50, 'int'), genRandom(-0.05, 0.05))
+}
+function genRotCircle(cx, cy, r, n, δθ) {
+  d3.range(1e-6, 2 * Math.PI, 2 * Math.PI / n)
+    .forEach(function (θ, i) {
+      var point = [cx + Math.cos(θ) * r, cy + Math.sin(θ) * r];
+      d3.timer(function (elapsed) {
+        var angle = θ + δθ * elapsed / 60;
+        point[0] = cx + Math.cos(angle) * r;
+        point[1] = cy + Math.sin(angle) * r;
+      }, 0, start);
+      points.push(point);
+    });
+}
+
+
+function popRandTravelers(n, type) {
+  for (let i = 0; i < n; i++) genRandTraveler(type);
+}
+function genRandTraveler(type) {
+  const movement = type || moveRestrictions[genRandom(0, moveRestrictions.length, 'int')];
+  genTraveler(randX(), randY(), genRandom(0.001, 5), genRandom(1, 360, 'int'), movement);
 }
 function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
   var point = [xi, yi];
@@ -159,38 +219,6 @@ function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
       v += genRandom(-mod, mod);
     } while(v > max || v < min);
   }
-}
-
-function popRandCircles(n) {
-  for (let i = 0; i < n; i++) genRandCircle();
-}
-function genRandCircle() {
-  genCircle(randX(), randY(), genRandom(3, 250, 'int'), genRandom(3, 50, 'int'))
-}
-function genCircle(cx, cy, r, n) {
-  d3.range(1e-6, 2 * Math.PI, 2 * Math.PI / n).map(function (θ, i) {
-    var point = [cx + Math.cos(θ) * r, cy + Math.sin(θ) * r];
-    points.push(point);
-  });
-}
-
-function popRandRotCircles(n) {
-  for (let i = 0; i < n; i++) genRandRotCircle();
-}
-function genRandRotCircle() {
-  genRotCircle(randX(), randY(), genRandom(3, 250, 'int'), genRandom(3, 50, 'int'), genRandom(-0.05, 0.05))
-}
-function genRotCircle(cx, cy, r, n, δθ) {
-  d3.range(1e-6, 2 * Math.PI, 2 * Math.PI / n)
-    .forEach(function (θ, i) {
-      var point = [cx + Math.cos(θ) * r, cy + Math.sin(θ) * r];
-      d3.timer(function (elapsed) {
-        var angle = θ + δθ * elapsed / 60;
-        point[0] = cx + Math.cos(angle) * r;
-        point[1] = cy + Math.sin(angle) * r;
-      }, 0, start);
-      points.push(point);
-    });
 }
 
 
