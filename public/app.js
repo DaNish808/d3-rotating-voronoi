@@ -11,14 +11,19 @@ const bound = {
   top: height / 2,
   bottom: -height / 2,
 }
+const loopBuffers = bufferBounds(1.25);
+const bounceBuffers = bufferBounds(0.9);
 
-const bufferRatio = 1.25;
-const boundBuffers = { ...bound };
-for(edge in boundBuffers) boundBuffers[edge] *= bufferRatio;
+function bufferBounds(bufferRatio) {
+  const newBounds = { ...bound };
+  for(edge in newBounds) newBounds[edge] *= bufferRatio;
+  return newBounds
+} 
 
 const moveRestrictions = {
   boundless: 'boundless',
-  loopAround: 'loop-around'
+  loopAround: 'loop-around',
+  bouncyEdges: 'bouncy-edges'
 }
 
 var bounds = d3.geom.polygon([
@@ -32,7 +37,7 @@ var bounds = d3.geom.polygon([
 popRandField(30);
 // popRandCircles(3);
 // popRandRotCircles(3)
-genTraveler(0, 0, 0, 0, 'loop-around')
+genTraveler(0, 0, 0, 0, 'bouncy-edges')
 
 
 var line = d3.svg.line()
@@ -88,29 +93,42 @@ function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
   var point = [xi, yi];
   let v = vi,
       d = di;
-  d3.timer(function (elapsed) {
-    switch(restriction) {
-      case 'loop-around':
 
+  d3.timer(function (elapsed) {
+    let newY = point[1] + Math.sin(d) * v;
+    let newX = point[0] + Math.cos(d) * v;
+
+    switch(restriction) {
+      case moveRestrictions.bouncyEdges:
+        modVelInRange(1, 1e-3, 5);
+        d += genRandom(-wiggliness, wiggliness); 
+
+        if(newX < bounceBuffers.left   || newX > bounceBuffers.right ||
+           newY < bounceBuffers.bottom || newY > bounceBuffers.top) {
+            d += Math.PI;
+        }
+
+        break;     
+      
+      case moveRestrictions.loopAround:
         modVelInRange(1, 1e-3, 5);
         d += genRandom(-wiggliness, wiggliness);
-        let newX = point[0] + Math.cos(d) * v;
-        if(newX < boundBuffers.left) newX = boundBuffers.right + boundBuffers.left - newX
-        else if(newX > boundBuffers.right) newX = boundBuffers.left + newX - boundBuffers.right;
 
-        let newY = point[1] + Math.sin(d) * v;
-        if(newY < boundBuffers.bottom) newY = boundBuffers.top + boundBuffers.bottom - newY
-        else if(newY > boundBuffers.top) newY = boundBuffers.bottom + newY - boundBuffers.top;
+        if(newX < loopBuffers.left) newX = loopBuffers.right + loopBuffers.left - newX
+        else if(newX > loopBuffers.right) newX = loopBuffers.left + newX - loopBuffers.right;
 
-        point[0] = newX + Math.cos(d) * v;
-        point[1] = newY + Math.sin(d) * v;
+        if(newY < loopBuffers.bottom) newY = loopBuffers.top + loopBuffers.bottom - newY
+        else if(newY > loopBuffers.top) newY = loopBuffers.bottom + newY - loopBuffers.top;
         break;
-      default: // boundless
-        v += genRandom(-1, 1);
+
+        default: // boundless
+        modVelInRange(1, 1e-3, 5);
         d += genRandom(-wiggliness, wiggliness);
-        point[0] += Math.cos(d) * v;
-        point[1] += Math.sin(d) * v;
-    }
+        newX = point[0] + Math.cos(d) * v;
+        newY = point[1] + Math.sin(d) * v;
+      }
+    point[0] = newX + Math.cos(d) * v;
+    point[1] = newY + Math.sin(d) * v;
   }, 0, start);
 
   points.push(point);
