@@ -4,6 +4,7 @@
 
 body {
   background: #000;
+  width: fit-content;
 }
 
 path {
@@ -13,7 +14,8 @@ path {
 }
 
 </style>
-<body>
-{% comment %} <script src="//d3js.org/d3.v3.js"></script> {% endcomment %}
+<body id="body">
+  <canvas id='canvas' height='500px' width='960px'></canvas>
+</body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.3.6/d3.js"></script>
-<script src="./app.js"></script>
+<script src="./bundle.js"></script>

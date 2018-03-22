@@ -1,9 +1,16 @@
+const svgpath = require('svgpath');
 
 var width = 960,
   height = 500;
 
 var start = Date.now(),
   points = [];
+
+let clientHasPoint = false;
+const mouse = {
+  x: 0,
+  y: 0
+}
 
 const bound = {
   left: -width / 2,
@@ -34,34 +41,79 @@ var bounds = d3.geom.polygon([
 ]);
 
 
-// popRandField(5);
-// popRandClusters(genRandom(1, 4, 'int'))
+setMyPoint();
+popRandField(randNum(0, 5.5, 'int'));
+popRandClusters(randNum(0, 3.5, 'int'))
 // popRandClusters(2)
-// popRandCircles(1);
-popRandRotCircles(genRandom(1, 4, 'int'));
+// popRandCircles(5);
+popRandRotCircles(randNum(0, 3.5, 'int'));
 // popRandRotCircles(1);
-// popRandTravelers(1, 'bouncy-edges');
-popRandLines(genRandom(1, 20, 'int'));
+popRandTravelers(randNum(0, 2, 'int'), 'bouncy-edges');
+popRandLines(randNum(0, 3.5, 'int'));
+
+
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+ctx.strokeStyle = '#fff';
+ctx.lineWidth = 1;
+ctx.fillStyle = '#fff'
 
 
 var line = d3.svg.line()
   .interpolate("basis-closed");
 
 var svg = d3.select("body").append("svg")
+  .attr("id", "voronoi-svg")
   .attr("width", width)
   .attr("height", height)
   .append("g")
   .attr("transform", "translate(" + (width / 2) + "," + (height / 2) + ")");
 
-var path = svg.selectAll("path")
-  .data(points)
-  .enter().append("path");
+var path = definePath();
 
-d3.timer(function () {
-  var voronoi = d3.geom.voronoi(points).map(function (cell) { return bounds.clip(cell); });
-  path.attr("d", function (point, i) { return line(resample(voronoi[i])); })
-  .attr('fill', 'blue');
-});
+function definePath() {
+  return svg
+    .selectAll("path")
+    .data(points)
+    .enter().append("path");
+}
+
+const animation = {
+  timerCondition: false, // timer continues until cb returns true
+  setTimer: () => {
+    d3.timer(() => {
+      var voronoi = d3.geom.voronoi(points).map(function (cell) { return bounds.clip(cell); });
+    
+      // cb cycles through each point in path
+      path.attr("d", function (_, i) { return line(resample(voronoi[i])); });
+      if(testBool) {
+        testBool--;
+        console.log('voronoi:', voronoi);
+        console.log("path:", path);
+        console.log("path[0][0].getAttribute('d'):", path[0][0].getAttribute('d'));
+        const pathData = path[0][0].getAttribute('d');
+        const translatedData = svgpath(pathData)
+          .translate(width / 2, height / 2);
+        const p = new Path2D(translatedData);
+        console.log('Path2d:', p);
+        ctx.stroke(p);
+      }
+      return animation.timerCondition;
+    });
+  },
+  resetTimer: () => {
+    this.timerCondition = true;
+    setTimeout(() => {
+      animation.timerCondition = false;
+      animation.setTimer();
+    }, 50)
+  }
+}
+
+let testBool = 1;
+animation.setTimer();
+
+
 
 
 function resample(points) {
@@ -96,10 +148,10 @@ function randPoint() {
 
 
 function popRandClusters(n) {
-  for(n; n > 0; n--) pointCluster(randX(), randY(), genRandom(10, 200, 'int'), genRandom(2, 30, 'int'))
+  for(n; n > 0; n--) pointCluster(randX(), randY(), randNum(10, 200, 'int'), randNum(2, 30, 'int'))
 }
 function pointCluster(cx, cy, r, n) {
-  const randDiff = () => genRandom(-1, 1) * Math.random() * r;
+  const randDiff = () => randNum(-1, 1) * Math.random() * r;
   for(let i = 0; i < n; i++) {
     let dx = randDiff();
     let dy = randDiff();
@@ -112,7 +164,7 @@ function popRandLines(n) {
   for(n; n > 0; n--) genRandLine();
 }
 function genRandLine() {
-  genLine(randX(), randY(), randX(), randY(), genRandom(3, 31, 'int'));
+  genLine(randX(), randY(), randX(), randY(), randNum(3, 31, 'int'));
 }
 function genLine(aX, aY, bX, bY, n) {
   const calcStepDiff = (a, b) => (a - b) / (n - 1);
@@ -132,11 +184,11 @@ function popRandCircles(n) {
   for (let i = 0; i < n; i++) genRandCircle();
 }
 function genRandCircle() {
-  genCircle(randX(), randY(), genRandom(3, 250, 'int'), genRandom(3, 50, 'int'))
+  genCircle(randX(), randY(), randNum(3, 250, 'int'), randNum(3, 50, 'int'))
 }
 function genCircle(cx, cy, r, n) {
-  d3.range(1e-6, 2 * Math.PI, 2 * Math.PI / n).map(function (θ, i) {
-    var point = [cx + Math.cos(θ) * r, cy + Math.sin(θ) * r];
+  d3.range(1e-6, 2 * Math.PI, 2 * Math.PI / n).map(function (theta, i) {
+    var point = [cx + Math.cos(theta) * r, cy + Math.sin(theta) * r];
     points.push(point);
   });
 }
@@ -146,14 +198,14 @@ function popRandRotCircles(n) {
   for (let i = 0; i < n; i++) genRandRotCircle();
 }
 function genRandRotCircle() {
-  genRotCircle(randX(), randY(), genRandom(3, 250, 'int'), genRandom(3, 50, 'int'), genRandom(-0.05, 0.05))
+  genRotCircle(randX(), randY(), randNum(3, 250, 'int'), randNum(3, 50, 'int'), randNum(-0.05, 0.05))
 }
-function genRotCircle(cx, cy, r, n, δθ) {
+function genRotCircle(cx, cy, r, n, dTheta) {
   d3.range(1e-6, 2 * Math.PI, 2 * Math.PI / n)
-    .forEach(function (θ, i) {
-      var point = [cx + Math.cos(θ) * r, cy + Math.sin(θ) * r];
+    .forEach(function (theta, i) {
+      var point = [cx + Math.cos(theta) * r, cy + Math.sin(theta) * r];
       d3.timer(function (elapsed) {
-        var angle = θ + δθ * elapsed / 60;
+        var angle = theta + dTheta * elapsed / 60;
         point[0] = cx + Math.cos(angle) * r;
         point[1] = cy + Math.sin(angle) * r;
       }, 0, start);
@@ -166,8 +218,8 @@ function popRandTravelers(n, type) {
   for (let i = 0; i < n; i++) genRandTraveler(type);
 }
 function genRandTraveler(type) {
-  const movement = type || moveRestrictions[genRandom(0, moveRestrictions.length, 'int')];
-  genTraveler(randX(), randY(), genRandom(0.001, 5), genRandom(1, 360, 'int'), movement);
+  const movement = type || moveRestrictions[randNum(0, moveRestrictions.length, 'int')];
+  genTraveler(randX(), randY(), randNum(0.001, 5), randNum(1, 360, 'int'), movement);
 }
 function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
   var point = [xi, yi];
@@ -181,7 +233,7 @@ function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
     switch(restriction) {
       case 'bouncy-edges':
         modVelInRange(1, 1e-3, 5);
-        d += genRandom(-wiggliness, wiggliness); 
+        d += randNum(-wiggliness, wiggliness); 
 
         if(newX < bounceBuffers.left   || newX > bounceBuffers.right ||
            newY < bounceBuffers.bottom || newY > bounceBuffers.top) {
@@ -192,7 +244,7 @@ function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
       
       case 'loop-around':
         modVelInRange(1, 1e-3, 5);
-        d += genRandom(-wiggliness, wiggliness);
+        d += randNum(-wiggliness, wiggliness);
 
         if(newX < loopBuffers.left) newX = loopBuffers.right + loopBuffers.left - newX
         else if(newX > loopBuffers.right) newX = loopBuffers.left + newX - loopBuffers.right;
@@ -203,7 +255,7 @@ function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
 
       default: // boundless
         modVelInRange(1, 1e-3, 5);
-        d += genRandom(-wiggliness, wiggliness);
+        d += randNum(-wiggliness, wiggliness);
         newX = point[0] + Math.cos(d) * v;
         newY = point[1] + Math.sin(d) * v;
       }
@@ -216,19 +268,59 @@ function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
   function modVelInRange(mod, min, max) {
     let i = 0;
     do{
-      v += genRandom(-mod, mod);
+      v += randNum(-mod, mod);
     } while(v > max || v < min);
   }
 }
 
 
+function setMyPoint() {
+  const elBody = document.getElementById('body');
+  let clientPoint = null;
+
+  elBody.addEventListener('dblclick', createClientPointHandler);
+  function createClientPointHandler(e) {
+    if(clientHasPoint === false) {
+      clientHasPoint = true;
+      clientPoint = [translateX(e.layerX), translateY(e.layerY)];
+      modPoints(clientPoint);
+    }
+    elBody.addEventListener('mousemove', e => {
+      clientPoint[0] = translateX(e.layerX);
+      clientPoint[1] = translateY(e.layerY);
+    })
+    elBody.removeEventListener('dblclick', createClientPointHandler);
+  }
+}
+
+// resets animation at each top-level mod of points array
+function modPoints(newPt) {
+  if(newPt) points.push(newPt);
+
+  const elG = document.getElementById('voronoi-svg').children[0];
+  while (elG.firstChild) {
+    elG.removeChild(elG.firstChild);
+  }
+
+  path = definePath();
+  animation.resetTimer();
+}
+function translateX(x) {
+  return x - width / 2;
+}
+function translateY(y) {
+  return y - height / 2;
+}
+
+
+
 function randX() {
-  return genRandom(bound.left, bound.right);
+  return randNum(bound.left, bound.right);
 }
 function randY() {
-  return genRandom(bound.bottom, bound.top);
+  return randNum(bound.bottom, bound.top);
 }
-function genRandom(min, max, int = false) {
+function randNum(min, max, int = false) {
   let randNum = Math.random() * (max - min) + min;
   if (int) randNum = parseInt(randNum);
   return randNum;
