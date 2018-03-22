@@ -12,7 +12,7 @@ const bound = {
   bottom: -height / 2,
 }
 const loopBuffers = bufferBounds(1.25);
-const bounceBuffers = bufferBounds(0.9);
+const bounceBuffers = bufferBounds(0.98);
 
 function bufferBounds(bufferRatio) {
   const newBounds = { ...bound };
@@ -20,11 +20,11 @@ function bufferBounds(bufferRatio) {
   return newBounds
 } 
 
-const moveRestrictions = {
-  boundless: 'boundless',
-  loopAround: 'loop-around',
-  bouncyEdges: 'bouncy-edges'
-}
+const moveRestrictions = [
+  'boundless',
+  'loop-around',
+  'bouncy-edges'
+];
 
 var bounds = d3.geom.polygon([
   [-width / 2, -height / 2],
@@ -34,10 +34,11 @@ var bounds = d3.geom.polygon([
 ]);
 
 
-popRandField(30);
-// popRandCircles(3);
-// popRandRotCircles(3)
-genTraveler(0, 0, 0, 0, 'bouncy-edges')
+// popRandField(5);
+popRandClusters(genRandom(1, 5, 'int'))
+// popRandCircles(1);
+// popRandRotCircles(1);
+popRandTravelers(1);
 
 
 var line = d3.svg.line()
@@ -55,7 +56,8 @@ var path = svg.selectAll("path")
 
 d3.timer(function () {
   var voronoi = d3.geom.voronoi(points).map(function (cell) { return bounds.clip(cell); });
-  path.attr("d", function (point, i) { return line(resample(voronoi[i])); });
+  path.attr("d", function (point, i) { return line(resample(voronoi[i])); })
+  .attr('fill', 'blue');
 });
 
 
@@ -89,6 +91,24 @@ function randPoint() {
   return [randX(), randY()];
 }
 
+function popRandClusters(n) {
+  for(n; n > 0; n--) pointCluster(randX(), randY(), genRandom(20, 200, 'int'), genRandom(2, 30, 'int'))
+}
+function pointCluster(cx, cy, r, n) {
+  const randDiff = () => genRandom(-1, 1) * Math.random() * r;
+  for(let i = 0; i < n; i++) {
+    let dx = randDiff();
+    let dy = randDiff();
+    points.push([cx + dx, cy + dy]);
+  }
+}
+
+function popRandTravelers(n) {
+  for (let i = 0; i < n; i++) genRandTraveler();
+}
+function genRandTraveler() {
+  genTraveler(randX(), randY(), genRandom(0.001, 5), genRandom(1, 360, 'int'), moveRestrictions[genRandom(0, moveRestrictions.length, 'int')]);
+}
 function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
   var point = [xi, yi];
   let v = vi,
@@ -99,7 +119,7 @@ function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
     let newX = point[0] + Math.cos(d) * v;
 
     switch(restriction) {
-      case moveRestrictions.bouncyEdges:
+      case 'bouncy-edges':
         modVelInRange(1, 1e-3, 5);
         d += genRandom(-wiggliness, wiggliness); 
 
@@ -110,7 +130,7 @@ function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
 
         break;     
       
-      case moveRestrictions.loopAround:
+      case 'loop-around':
         modVelInRange(1, 1e-3, 5);
         d += genRandom(-wiggliness, wiggliness);
 
@@ -121,7 +141,7 @@ function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
         else if(newY > loopBuffers.top) newY = loopBuffers.bottom + newY - loopBuffers.top;
         break;
 
-        default: // boundless
+      default: // boundless
         modVelInRange(1, 1e-3, 5);
         d += genRandom(-wiggliness, wiggliness);
         newX = point[0] + Math.cos(d) * v;
@@ -134,6 +154,7 @@ function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
   points.push(point);
 
   function modVelInRange(mod, min, max) {
+    let i = 0;
     do{
       v += genRandom(-mod, mod);
     } while(v > max || v < min);
