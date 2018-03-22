@@ -5,6 +5,22 @@ var width = 960,
 var start = Date.now(),
   points = [];
 
+const bound = {
+  left: -width / 2,
+  right: width / 2,
+  top: height / 2,
+  bottom: -height / 2,
+}
+
+const bufferRatio = 1.25;
+const boundBuffers = { ...bound };
+for(edge in boundBuffers) boundBuffers[edge] *= bufferRatio;
+
+const moveRestrictions = {
+  boundless: 'boundless',
+  loopAround: 'loop-around'
+}
+
 var bounds = d3.geom.polygon([
   [-width / 2, -height / 2],
   [-width / 2, +height / 2],
@@ -16,7 +32,7 @@ var bounds = d3.geom.polygon([
 popRandField(30);
 // popRandCircles(3);
 // popRandRotCircles(3)
-genTraveler(0, 0, 0, 0)
+genTraveler(0, 0, 0, 0, 'loop-around')
 
 
 var line = d3.svg.line()
@@ -68,17 +84,42 @@ function randPoint() {
   return [randX(), randY()];
 }
 
-function genTraveler(xi, yi, vi, di) {
+function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
   var point = [xi, yi];
   let v = vi,
       d = di;
   d3.timer(function (elapsed) {
-    v = v + genRandom(-1, 1);
-    d = d + genRandom(-1, 1);
-    point[0] += Math.cos(d) * v;
-    point[1] += yi + Math.sin(d) * v;
+    switch(restriction) {
+      case 'loop-around':
+
+        modVelInRange(1, 1e-3, 5);
+        d += genRandom(-wiggliness, wiggliness);
+        let newX = point[0] + Math.cos(d) * v;
+        if(newX < boundBuffers.left) newX = boundBuffers.right + boundBuffers.left - newX
+        else if(newX > boundBuffers.right) newX = boundBuffers.left + newX - boundBuffers.right;
+
+        let newY = point[1] + Math.sin(d) * v;
+        if(newY < boundBuffers.bottom) newY = boundBuffers.top + boundBuffers.bottom - newY
+        else if(newY > boundBuffers.top) newY = boundBuffers.bottom + newY - boundBuffers.top;
+
+        point[0] = newX + Math.cos(d) * v;
+        point[1] = newY + Math.sin(d) * v;
+        break;
+      default: // boundless
+        v += genRandom(-1, 1);
+        d += genRandom(-wiggliness, wiggliness);
+        point[0] += Math.cos(d) * v;
+        point[1] += Math.sin(d) * v;
+    }
   }, 0, start);
+
   points.push(point);
+
+  function modVelInRange(mod, min, max) {
+    do{
+      v += genRandom(-mod, mod);
+    } while(v > max || v < min);
+  }
 }
 
 function popRandCircles(n) {
@@ -115,10 +156,10 @@ function genRotCircle(cx, cy, r, n, δθ) {
 
 
 function randX() {
-  return genRandom(-(width / 2), width / 2);
+  return genRandom(bound.left, bound.right);
 }
 function randY() {
-  return genRandom(-(height / 2), height / 2);
+  return genRandom(bound.bottom, bound.top);
 }
 function genRandom(min, max, int = false) {
   let randNum = Math.random() * (max - min) + min;
