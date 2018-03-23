@@ -16,12 +16,14 @@ popRandClusters(randNum(0, 3.5, 'int'))
 // popRandCircles(5);
 popRandRotCircles(randNum(0, 3.5, 'int'));
 // popRandRotCircles(1);
-popRandTravelers(randNum(0, 2, 'int'), 'bouncy-edges');
+popRandTravelers(randNum(1, 2.2, 'int'), 'bouncy-edges');
 popRandLines(randNum(0, 3.5, 'int'));
+
 
 if(travelersPresent()) {
   setTravelerHues(getTravelerIndices());
 }
+
 
 definePath();
 animation.setTimer();
