@@ -10,14 +10,23 @@ const { setTravelerHues } = require('./canvas');
 
 
 setMyPoint();
-popRandField(randNum(0, 5.5, 'int'));
-popRandClusters(randNum(0, 3.5, 'int'))
+popRandField(randNum(0, 15.5, 'int'));
+popRandClusters(randNum(0, 9.5, 'int'))
 // popRandClusters(2)
 // popRandCircles(5);
-popRandRotCircles(randNum(0, 3.5, 'int'));
+popRandRotCircles(randNum(0, 9.5, 'int'));
 // popRandRotCircles(1);
 popRandTravelers(randNum(1, 2.2, 'int'), 'bouncy-edges');
-popRandLines(randNum(0, 3.5, 'int'));
+popRandLines(randNum(0, 9.5, 'int'));
+// setMyPoint();
+// popRandField(randNum(0, 5.5, 'int'));
+// popRandClusters(randNum(0, 3.5, 'int'))
+// // popRandClusters(2)
+// // popRandCircles(5);
+// popRandRotCircles(randNum(0, 3.5, 'int'));
+// // popRandRotCircles(1);
+// popRandTravelers(randNum(1, 2.2, 'int'), 'bouncy-edges');
+// popRandLines(randNum(0, 3.5, 'int'));
 
 
 if(travelersPresent()) {
@@ -28,7 +37,9 @@ if(travelersPresent()) {
 definePath();
 animation.setTimer();
 
-
+setTimeout(() => {
+  document.getElementById('voronoi-svg').style.top = '500px';
+}, 10000)
 
 
 

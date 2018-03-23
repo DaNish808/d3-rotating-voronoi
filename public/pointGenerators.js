@@ -98,7 +98,7 @@ function genRandTraveler(type) {
   const movement = type || moveRestrictions[randNum(0, moveRestrictions.length, 'int')];
   genTraveler(randX(), randY(), randNum(0.001, 5), randNum(1, 360, 'int'), movement);
 }
-function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
+function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.15) {
   var point = [xi, yi];
   let v = vi,
       d = di;
@@ -109,18 +109,30 @@ function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
 
     switch(restriction) {
       case 'bouncy-edges':
-        modVelInRange(1, 1e-3, 5);
+        modVelInRange(0.25, 1e-3, 1);
         d += randNum(-wiggliness, wiggliness); 
 
-        if(newX < bounceBuffers.left   || newX > bounceBuffers.right ||
-           newY < bounceBuffers.bottom || newY > bounceBuffers.top) {
-            d += Math.PI;
+        if(newX < bounceBuffers.left) {
+          newX = bounceBuffers.left;
+          d = 0 + randNum(-60, 60);
+        }
+        else if(newX > bounceBuffers.right) {
+          newX = bounceBuffers.right;
+          d = 180 + randNum(-60, 60);
+        }
+        else if(newY < bounceBuffers.bottom) {
+          newY = bounceBuffers.bottom;
+          d = 90 + randNum(-60, 60);
+        }
+        else if(newY > bounceBuffers.top) {
+          newY = bounceBuffers.top;
+          d = 270 + randNum(-60, 60);
         }
 
         break;     
       
       case 'loop-around':
-        modVelInRange(1, 1e-3, 5);
+        modVelInRange(0.05, 1e-3, 1);
         d += randNum(-wiggliness, wiggliness);
 
         if(newX < loopBuffers.left) newX = loopBuffers.right + loopBuffers.left - newX
@@ -131,7 +143,7 @@ function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
         break;
 
       default: // boundless
-        modVelInRange(1, 1e-3, 5);
+        modVelInRange(0.05, 1e-3, 1);
         d += randNum(-wiggliness, wiggliness);
         newX = point[0] + Math.cos(d) * v;
         newY = point[1] + Math.sin(d) * v;

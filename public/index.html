@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+
 <style>
 
 body {
@@ -7,15 +8,22 @@ body {
   width: fit-content;
 }
 
+#voronoi-svg {
+  z-index: -1;
+  position: absolute;
+  top: 0px;
+  transition: all 3s ease-in;
+}
+
 path {
   fill: #fff;
-  stroke: #000;
+  stroke: rgb(90, 68, 68);
   stroke-width: 1.5px;
 }
 
 </style>
 <body id="body">
-  <canvas id="canvas" height="500px" width="960px"></canvas>
+  <canvas id="canvas" height="500px" width="960px" style="position: absolute; top: 0"></canvas>
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.3.6/d3.js"></script>
 <script src="./bundle.js"></script>

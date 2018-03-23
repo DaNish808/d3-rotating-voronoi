@@ -9,7 +9,7 @@ const canvas = document.getElementById('canvas');
 
 const ctx = canvas.getContext('2d');
 ctx.strokeStyle = '#fff';
-ctx.lineWidth = 2;
+ctx.lineWidth = 1;
 ctx.fillStyle = '#fff'
 
 let userHue = 0;
@@ -22,20 +22,21 @@ function setTravelerHues(indices) {
 }
 
 function draw(paths) {
-  const hueDiff = 0.2
+  // const hueDiff = 0.01
+  const hueDiff = 0.05
   if(checkUserHasPoint()) {
-    ctx.strokeStyle = `hsla(${userHue += hueDiff}, 100%, 50%, 0.3)`;
+    ctx.strokeStyle = `hsla(${userHue += hueDiff}, 100%, 50%, 0.2)`;
     drawFromSVG(pullData(paths, getUserPointIndex()));
   }
   if(travelersPresent()) {
     getTravelerIndices().forEach(index => {
       const hue = travelerHues.get(index);
       travelerHues.set(index, hue + hueDiff);
-      console.log(travelerHues)
-      ctx.strokeStyle = `hsla(${hue}, 100%, 50%, 0.3)`;
+      ctx.strokeStyle = `hsla(${hue}, 100%, 50%, 0.2)`;
       drawFromSVG(pullData(paths, index));
     })
   }
+  // fade();
 }
 
 function pullData(paths, index) {
@@ -49,6 +50,12 @@ function drawFromSVG(pathData) {
   ctx.stroke(p);
 }
 
+function fade() {
+  ctx.beginPath();
+  ctx.rect(0, 0, width, height)
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.01)';
+  ctx.fill();
+}
 
 module.exports = {
   setTravelerHues,
