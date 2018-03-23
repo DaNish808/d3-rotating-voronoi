@@ -4,13 +4,6 @@ const width = 960,
 
 const start = Date.now();
 
-const points = [];
-function addPoint(pt) {
-  points.push(pt);
-}
-function getPoints() {
-  return points;
-} 
 
 const mouse = {
   x: 0,
@@ -42,6 +35,5 @@ module.exports = {
   width, height, start,
   mouse, bound,
   loopBuffers, bounceBuffers,
-  moveRestrictions,
-  addPoint, getPoints
+  moveRestrictions
 }

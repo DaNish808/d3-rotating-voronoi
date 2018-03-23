@@ -2,8 +2,11 @@ const {
   width, height, start,
   mouse, bound, moveRestrictions,
   loopBuffers, bounceBuffers,
-  addPoint
 } = require('./constants');
+const { 
+  addPoint, checkUserHasPoint,
+  addTravelerIndex,
+} = require('./points'); 
 const { modPoints } = require('./d3');
 
 
@@ -137,7 +140,7 @@ function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
     point[1] = newY + Math.sin(d) * v;
   }, 0, start);
 
-  addPoint(point);
+  addTravelerIndex(addPoint(point) - 1);
 
   function modVelInRange(mod, min, max) {
     let i = 0;
@@ -149,18 +152,15 @@ function genTraveler(xi, yi, vi, di, restriction, wiggliness = 0.5) {
 
 
 
-let clientHasPoint = false;
 
 function setMyPoint() {
   const elBody = document.getElementById('body');
   let clientPoint = null;
 
-  elBody.addEventListener('dblclick', createClientPointHandler);
   function createClientPointHandler(e) {
-    if(clientHasPoint === false) {
-      clientHasPoint = true;
+    if(checkUserHasPoint() === false) {
       clientPoint = [translateX(e.layerX), translateY(e.layerY)];
-      modPoints(clientPoint);
+      modPoints(clientPoint, true);
     }
     elBody.addEventListener('mousemove', e => {
       clientPoint[0] = translateX(e.layerX);
@@ -168,6 +168,8 @@ function setMyPoint() {
     })
     elBody.removeEventListener('dblclick', createClientPointHandler);
   }
+
+  elBody.addEventListener('dblclick', createClientPointHandler);
 }
 
 

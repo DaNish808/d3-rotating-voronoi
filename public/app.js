@@ -1,14 +1,12 @@
 const {
   setMyPoint,
-  popRandCircles,
-  popRandClusters,
-  popRandField,
-  popRandLines,
-  popRandRotCircles,
-  popRandTravelers,
+  popRandCircles, popRandClusters, popRandField,
+  popRandLines, popRandRotCircles, popRandTravelers,
   randNum
 } = require('./pointGenerators');
+const { travelersPresent, getTravelerIndices } = require('./points');
 const { definePath, animation } = require('./d3');
+const { setTravelerHues } = require('./canvas');
 
 
 setMyPoint();
@@ -21,6 +19,9 @@ popRandRotCircles(randNum(0, 3.5, 'int'));
 popRandTravelers(randNum(0, 2, 'int'), 'bouncy-edges');
 popRandLines(randNum(0, 3.5, 'int'));
 
+if(travelersPresent()) {
+  setTravelerHues(getTravelerIndices());
+}
 
 definePath();
 animation.setTimer();

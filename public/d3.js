@@ -1,10 +1,12 @@
-const svgpath = require('svgpath');
-const ctx = require('./canvas');
+const { draw } = require('./canvas');
+const { 
+  addPoint, getPoints,
+  checkUserHasPoint, setUserPointIndex, getUserPointIndex
+} = require('./points'); 
 const {
   width, height, start,
   mouse, bound, moveRestrictions,
   loopBuffers, bounceBuffers,
-  addPoint, getPoints
 } = require('./constants');
 
 
@@ -35,13 +37,15 @@ function definePath() {
     .selectAll("path")
     .data(getPoints())
     .enter().append("path");
-  console.log('path defined:', path)
 }
 
 
 
-function modPoints(newPt) {
-  if(newPt) addPoint(newPt);
+function modPoints(newPt, userPt) {
+  if(newPt) {
+    const index = addPoint(newPt) - 1;
+    if(userPt) setUserPointIndex(index);
+  }
 
   const elG = document.getElementById('voronoi-svg').children[0];
   while (elG.firstChild) {
@@ -63,14 +67,9 @@ const animation = {
     
       // cb cycles through each point in path
       path.attr("d", function (_, i) { return line(resample(voronoi[i])); });
-      if(testBool) {
-        testBool--;
-        const pathData = path[0][0].getAttribute('d');
-        const translatedData = svgpath(pathData)
-          .translate(width / 2, height / 2);
-        const p = new Path2D(translatedData);
-        ctx.stroke(p);
-      }
+      
+      draw(path);
+
       return animation.timerCondition;
     });
   },
